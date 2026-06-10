@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kansai Group — Import Duty Calculator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --border: #e2e5ea;
+  --border-strong: #c8cdd6;
+  --text: #1a1d23;
+  --text-mid: #4a5060;
+  --text-muted: #8a909e;
+  --blue: #2563eb;
+  --blue-light: #eff4ff;
+  --blue-mid: #dbeafe;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --red: #dc2626;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo-box {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+.header-title { font-weight: 600; font-size: 15px; color: var(--text); }
+.header-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-muted); }
+.rate-pill {
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1px solid var(--blue-mid);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 20px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.card-header .count {
+  font-size: 11px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+.card-body { padding: 16px 18px; }
+
+/* ── SEARCH BAR ── */
+.search-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.search-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+
+label.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+select { cursor: pointer; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead { position: sticky; top: 0; background: var(--bg); }
+th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tbody tr { cursor: pointer; transition: background 0.1s; }
+tbody tr:hover { background: var(--bg); }
+tbody tr.active-row { background: var(--blue-light) !important; }
+tbody tr.active-row td { border-bottom-color: var(--blue-mid); }
+.td-brand { font-weight: 600; font-size: 13px; white-space: nowrap; }
+.td-model { color: var(--text-mid); font-size: 12px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-cc { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-mid); }
+.td-cur { display: inline-block; background: var(--bg); border: 1px solid var(--border); color: var(--text-mid); font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+.td-fob { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text); }
+.no-results { text-align: center; padding: 40px; color: var(--text-muted); }
+
+/* ── PAGINATION ── */
+.pagination {
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pag-btns { display: flex; gap: 4px; }
+.pag-btn {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.1s;
+}
+.pag-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--blue); color: var(--blue); }
+.pag-btn.cur { background: var(--blue); border-color: var(--blue); color: #fff; }
+.pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── RIGHT COLUMN ── */
+.right-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── RATE INPUTS ── */
+.rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rate-link { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+.rate-link a { color: var(--blue); text-decoration: none; }
+.rate-link a:hover { text-decoration: underline; }
+
+/* ── DUTY TABLE ── */
+.duty-table { border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.duty-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.duty-row:last-child { border-bottom: none; }
+.duty-row.hl { background: var(--blue-light); }
+.duty-row.hl .dr-pct { color: var(--blue); font-weight: 700; }
+.dr-cc { color: var(--text-mid); }
+.dr-pct { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--text); }
+
+/* ── CALC PANEL ── */
+.sel-info {
+  background: var(--blue-light);
+  border: 1px solid var(--blue-mid);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.sel-brand { font-weight: 700; font-size: 14px; color: var(--text); }
+.sel-model { font-size: 12px; color: var(--text-mid); margin-top: 2px; line-height: 1.4; }
+.sel-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-mid);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.tag.blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+.fob-display {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 5px;
+}
+
+.calc-steps { margin-top: 14px; }
+.step {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.step:last-child { border-bottom: none; }
+.step-left { flex: 1; }
+.step-letter {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 20px;
+  margin-right: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.step-name { font-weight: 500; font-size: 13px; color: var(--text); }
+.step-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; margin-left: 26px; }
+.step-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  text-align: right;
+}
+.step-val.big { font-size: 14px; color: var(--green); }
+
+/* ── RESULT BOX ── */
+.result-box {
+  background: var(--green-light);
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 14px;
+}
+.result-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green); margin-bottom: 4px; }
+.result-value { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 700; color: var(--green); }
+.result-sub { font-size: 11px; color: #4ade80; margin-top: 4px; }
+
+/* ── ACTIONS ── */
+.action-row { display: flex; gap: 8px; margin-top: 12px; }
+.btn {
+  flex: 1;
+  padding: 9px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-ghost { background: var(--surface); color: var(--text-mid); border-color: var(--border-strong); }
+.btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 28px 16px; color: var(--text-muted); }
+.empty .icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+.empty p { font-size: 13px; line-height: 1.5; }
+
+/* ── PRINT ── */
+@media print {
+  .header, .search-row, .search-row-4, .table-wrap, .pagination, .rate-grid, .rate-link, .action-row { display: none !important; }
+  .layout { grid-template-columns: 1fr; }
+  body { background: white; }
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .right-col { order: -1; }
+  .search-row-4 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-box">KANSAI</div>
+    <div>
+      <div class="header-title">Import Duty Calculator</div>
+      <div class="header-sub">Japanese CBU Used Vehicles — BIL 2-2026</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span>JPY Rate: <span class="rate-pill" id="jpyBadge">0.0250</span></span>
+    <span id="totalCount" style="color:var(--text-muted)"></span>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: Vehicle Table -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Vehicle List</h2>
+        <span class="count" id="countBadge">—</span>
+      </div>
+
+      <div class="card-body">
+        <div class="search-row">
+          <div>
+            <label class="field-label">Brand</label>
+            <input type="text" id="sBrand" placeholder="e.g. Toyota, Honda..." oninput="doFilter()">
+          </div>
+          <div>
+            <label class="field-label">Model / Keywords</label>
+            <input type="text" id="sModel" placeholder="e.g. Alphard, Land Cruiser..." oninput="doFilter()">
+          </div>
+        </div>
+        <div class="search-row-4">
+          <div>
+            <label class="field-label">Vehicle Age</label>
+            <select id="sAge" onchange="doFilter(); if(sel) updateCalc()">
+              <option value="0">12 – 24 months</option>
+              <option value="1">24 – 36 months</option>
+              <option value="2">36 – 48 months</option>
+              <option value="3">48 – 60 months</option>
+              <option value="4">60+ months</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Currency</label>
+            <select id="sCur" onchange="doFilter()">
+              <option value="">All</option>
+              <option value="JPY">JPY</option>
+              <option value="GBP">GBP</option>
+              <option value="AUD">AUD</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">CC Range</label>
+            <select id="sCC" onchange="doFilter()">
+              <option value="">All CC</option>
+              <option value="0-1499">0 – 1499</option>
+              <option value="1500-1799">1500 – 1799</option>
+              <option value="1800-1999">1800 – 1999</option>
+              <option value="2000-2499">2000 – 2499</option>
+              <option value="2500+">2500+</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Sort FOB</label>
+            <select id="sSort" onchange="doFilter()">
+              <option value="">Default</option>
+              <option value="asc">FOB Low → High</option>
+              <option value="desc">FOB High → Low</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Brand</th>
+              <th>Model</th>
+              <th>CC</th>
+              <th>Cur</th>
+              <th>FOB Value</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span id="pgInfo" style="font-size:12px">—</span>
+        <div class="pag-btns">
+          <button class="pag-btn" id="prevBtn" onclick="goPage(pg-1)" disabled>← Prev</button>
+          <span id="pgNums" style="display:flex;gap:4px"></span>
+          <button class="pag-btn" id="nextBtn" onclick="goPage(pg+1)">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Calculator -->
+  <div class="right-col">
+
+    <!-- Exchange Rates -->
+    <div class="card">
+      <div class="card-header"><h2>Exchange Rates (RM per unit)</h2></div>
+      <div class="card-body">
+        <div class="rate-grid">
+          <div>
+            <label class="field-label">JPY</label>
+            <input type="number" id="rJPY" value="0.0250" step="0.0001" min="0" oninput="syncBadge();updateCalc()">
+          </div>
+          <div>
+            <label class="field-label">GBP</label>
+            <input type="number" id="rGBP" value="5.5000" step="0.001" min="0" oninput="updateCalc()">
+          </div>
+          <div>
+            <label class="field-label">AUD</label>
+            <input type="number" id="rAUD" value="2.8500" step="0.001" min="0" oninput="updateCalc()">
+          </div>
+          <div>
+            <label class="field-label">Shipping (RM)</label>
+            <input type="number" id="rShip" value="1200" step="100" min="0" oninput="updateCalc()">
+          </div>
+        </div>
+        <div class="rate-link">Update rates every 2 weeks from:
+          <a href="http://customsgc.gov.my/cgi-bin/exchange.cgi" target="_blank">customsgc.gov.my ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duty Rate Reference -->
+    <div class="card">
+      <div class="card-header"><h2>Duty Rate Reference (CC)</h2></div>
+      <div class="card-body" style="padding:10px 18px">
+        <div class="duty-table">
+          <div class="duty-row" id="dr0"><span class="dr-cc">0 – 1,499 cc</span><span class="dr-pct">135.95%</span></div>
+          <div class="duty-row" id="dr1"><span class="dr-cc">1,500 – 1,799 cc</span><span class="dr-pct">150.25%</span></div>
+          <div class="duty-row" id="dr2"><span class="dr-cc">1,800 – 1,999 cc</span><span class="dr-pct">157.40%</span></div>
+          <div class="duty-row" id="dr3"><span class="dr-cc">2,000 – 2,499 cc</span><span class="dr-pct">171.70%</span></div>
+          <div class="duty-row" id="dr4"><span class="dr-cc">2,500+ cc</span><span class="dr-pct">193.15%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculation Result -->
+    <div class="card">
+      <div class="card-header"><h2>Duty Calculation</h2></div>
+      <div class="card-body" id="calcBody">
+        <div class="empty">
+          <div class="icon">🚗</div>
+          <p>Click any vehicle in the table to calculate its import duty.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATABASE — Japanese brands only
+// Columns: [bil, brand, model, cc, currency, fob_12-24, fob_24-36, fob_36-48, fob_48-60, fob_60+]
+// ═══════════════════════════════════════════════════
+const DB = [
+  // DAIHATSU
+  [316,"DAIHATSU","ATRAI RS 5D (3BD-S710V) AT",658,"JPY",612861,518574,424288,330002,282859],
+  [317,"DAIHATSU","COPEN CERO (3BA-LA400K) AT",658,"JPY",622371,526621,430872,335123,287248],
+  [318,"DAIHATSU","COPEN CERO S (3BA-LA400K) AT",658,"JPY",700263,592530,484798,377065,323198],
+  [319,"DAIHATSU","COPEN GR SPORT (3BA-LA400K) AT",658,"JPY",762073,644831,527589,410347,351726],
+  [320,"DAIHATSU","COPEN ROBE (3BA-LA400K)",658,"JPY",615241,520589,425936,331284,283958],
+  [321,"DAIHATSU","COPEN ROBE S (3BA-LA400K)",658,"JPY",669920,566855,463791,360726,309194],
+  [322,"DAIHATSU","COPEN XPLAY (3BA-LA400K)",658,"JPY",604760,511720,418680,325640,279120],
+  [323,"DAIHATSU","MOVE CANBUS G BLACK INTERIOR LIMITED SA III (5BA-LA800S)",658,"JPY",507195,429165,351135,273105,234090],
+  [325,"DAIHATSU","MOVE CANBUS G MAKE UP VS SA III (5BA-LA800S)",658,"JPY",521284,441086,360889,280691,240593],
+  [326,"DAIHATSU","MOVE CANBUS G SA III (5BA-LA800S)",658,"JPY",486062,411283,336504,261726,224336],
+  [329,"DAIHATSU","MOVE CANBUS STRIPES G (5BA-LA850S)",658,"JPY",535373,453008,370643,288278,247095],
+  [331,"DAIHATSU","MOVE CANBUS STRIPES G TURBO (5BA-LA850S)",658,"JPY",574117,485791,397465,309140,264977],
+  [339,"DAIHATSU","TAFT G (6BA-LA900S)",658,"JPY",475495,402342,329189,256036,219459],
+  [340,"DAIHATSU","TAFT G CHROME VENTURE (6BA-LA900S)",658,"JPY",496628,420224,343820,267415,229213],
+  [341,"DAIHATSU","TAFT G TURBO (5BA-LA900S)",658,"JPY",523762,443184,362605,282026,241736],
+  [342,"DAIHATSU","TAFT G TURBO (5BA-LA910S)",658,"JPY",554745,469399,384054,298709,256036],
+  [345,"DAIHATSU","TAFT X (6BA-LA900S)",658,"JPY",441252,373367,305482,237597,203655],
+  [346,"DAIHATSU","TANTO CUSTOM RS (5BA-LA650S)",658,"JPY",581161,491752,402342,312933,268228],
+  [347,"DAIHATSU","TANTO CUSTOM RS STYLE SELECTION (5BA-LA650S)",658,"JPY",602294,509633,416973,324312,277982],
+  [348,"DAIHATSU","TANTO CUSTOM X SELECTION (6BA-LA650S)",658,"JPY",551222,466419,381615,296812,254410],
+  [349,"DAIHATSU","TANTO L (6BA-LA650S)",658,"JPY",429707,363598,297489,231381,198326],
+  [350,"DAIHATSU","TANTO X (6BA-LA650S)",658,"JPY",563550,476850,390150,303450,260100],
+  [353,"DAIHATSU","THOR CUSTOM G TURBO (4BA-M900S)",996,"JPY",655127,554338,453549,352761,302366],
+  [354,"DAIHATSU","WAKE G TURBO LIMITED SA III (3BA-LA700S)",658,"JPY",560028,473870,387712,301553,258474],
+  // HONDA
+  [400,"HONDA","CIVIC EX (6BA-FL1) AT/MT",1496,"JPY",1133440,959065,784689,610314,523126],
+  [401,"HONDA","CIVIC HATCHBACK (6BA-FK7) AT/MT",1496,"JPY",943946,798724,653501,508279,435668],
+  [402,"HONDA","CIVIC HATCHBACK HONDA SENSING (DBA-FK7) AT/MT",1496,"JPY",913303,772795,632287,491779,421525],
+  [403,"HONDA","CIVIC I-VTEC TYPE R GT (S/S) HATCHBACK 5D (316BHP) MT",1996,"GBP",9241,7820,6398,4976,4265],
+  [404,"HONDA","CIVIC I-VTEC TYPE R HATCHBACK 5D (316BHP) MT",1996,"GBP",8654,7323,5991,4660,3994],
+  [405,"HONDA","CIVIC LX (6BA-FL1) AT/MT",1496,"JPY",1021434,864291,707147,550003,471431],
+  [406,"HONDA","CIVIC RS 10TH GEN 5D HATCHBACK FWD (127KW) AT",1498,"AUD",10339,8749,7158,5567,4772],
+  [407,"HONDA","CIVIC TYPE R (6BA-FK8) MT",1995,"JPY",1521585,1287495,1053405,819315,702270],
+  [408,"HONDA","CIVIC TYPE R (6BA-FL5) MT",1995,"JPY",1600130,1353956,1107782,861608,738521],
+  [412,"HONDA","CIVIC TYPE R LIMITED EDITION (6BA-FK8) MT",1995,"JPY",1793707,1517752,1241797,965842,827865],
+  [418,"HONDA","FIT CROSSTAR (6BA-GR5)",1317,"JPY",620609,525131,429653,334174,286435],
+  [419,"HONDA","FIT E:HEV CROSSTAR (6AA-GR8)",1496,"JPY",796014,673551,551087,428623,367391],
+  [421,"HONDA","FIT RS HONDA SENSING (DBA-GK5) AT/MT",1496,"JPY",668863,565961,463059,360157,308706],
+  [422,"HONDA","FREED G HONDA SENSING (6BA-GB5)",1496,"JPY",691758,585333,478909,372485,319273],
+  [423,"HONDA","FIT E:HEV RS (6AA-GR3)",1496,"JPY",751283,635701,520119,404537,346746],
+  [424,"HONDA","FIT RS (5BA-GS4)",1496,"JPY",656184,555232,454281,353330,302854],
+  [425,"HONDA","N ONE ORIGINAL (6BA-JG3)",658,"JPY",512126,433337,354549,275760,236366],
+  [426,"HONDA","N ONE PREMIUM (6BA-JG3)",658,"JPY",569890,482215,394539,306864,263026],
+  [427,"HONDA","N ONE PREMIUM TOURER (6BA-JG3)",658,"JPY",605112,512018,418924,325829,279282],
+  [428,"HONDA","N ONE RS (6BA-JG3) AT/MT",658,"JPY",640334,541821,443308,344795,295539],
+  [429,"HONDA","NBOX CUSTOM BASE GRADE (6BA-JF6)",658,"JPY",634698,537052,439406,341761,292938],
+  [430,"HONDA","N-BOX CUSTOM COORDINATED STYLE (2 TONE) (6BA-JF5)",658,"JPY",685065,579671,474276,368881,316184],
+  [431,"HONDA","NBOX CUSTOM EX (6BA-JF3)",658,"JPY",608282,514700,421118,327536,280745],
+  [432,"HONDA","NBOX CUSTOM EX TURBO (6BA-JF3)",658,"JPY",653014,552550,452086,351623,301391],
+  [434,"HONDA","NBOX CUSTOM G L HONDA SENSING (6BA-JF3)",658,"JPY",559323,473274,387224,301174,258149],
+  [436,"HONDA","NBOX CUSTOM G L TURBO HONDA SENSING (6BA-JF3)",658,"JPY",621666,526025,430384,334743,286923],
+  [440,"HONDA","NBOX CUSTOM L (6BA-JF3)",658,"JPY",573060,484897,396734,308571,264489],
+  [442,"HONDA","NBOX CUSTOM L TURBO (6BA-JF3)",658,"JPY",648604,548819,449034,349248,299356],
+  [445,"HONDA","N-BOX CUSTOM TURBO (6BA-JF5)",658,"JPY",662523,560597,458670,356743,305780],
+  [446,"HONDA","NBOX CUSTOM TURBO (6BA-JF6)",658,"JPY",705142,596659,488175,379692,325450],
+  [450,"HONDA","NBOX G (6BA-JF3)",658,"JPY",457532,387143,316753,246363,211169],
+  [454,"HONDA","ODYSSEY ABSOLUTE (6BA-RC1)",2356,"JPY",1147273,970769,794266,617762,529510],
+  [455,"HONDA","ODYSSEY ABSOLUTE 8 SEATER (6BA-RC2)",2356,"JPY",1210992,1024686,838379,652073,558919],
+  [456,"HONDA","ODYSSEY ABSOLUTE EX 7 SEATER (6BA-RC1)",2356,"JPY",1244180,1052768,861355,669943,574237],
+  [457,"HONDA","ODYSSEY ABSOLUTE EX HONDA SENSING (6BA-RC1)",2356,"JPY",1172106,991782,811458,631134,540972],
+  [458,"HONDA","ODYSSEY ABSOLUTE EX HONDA SENSING 8 SEATER (6BA-RC2)",2356,"JPY",1209154,1023130,837107,651083,558071],
+  [463,"HONDA","ODYSSEY HYBRID e:HEV ABSOLUTE EX 7 SEATER (6AA-RC4)",1993,"JPY",1466511,1240894,1015277,789660,676851],
+  [465,"HONDA","S660 ALPHA (3BA-JW5) AT/MT",658,"JPY",743182,628846,514510,400175,343007],
+  [466,"HONDA","S660 ALPHA (DBA-JW5) AT/MT",658,"JPY",712891,603215,493540,383864,329027],
+  [467,"HONDA","S660 BETA (3BA-JW5) AT",658,"JPY",650548,550464,450379,350295,300253],
+  [468,"HONDA","S660 MODULO X (3BA-JW5) AT/MT",658,"JPY",974237,824354,674472,524589,449648],
+  [469,"HONDA","S660 MODULO X VERSION Z (3BA-JW5) MT",658,"JPY",1008755,853562,698369,543176,465579],
+  [470,"HONDA","SHUTTLE G HONDA SENSING (6BA-GK8)",1496,"JPY",579048,489963,400879,311795,267253],
+  [471,"HONDA","STEPWAGON AIR 7 SEATER (5BA-RP6)",1496,"JPY",960148,812433,664718,517003,443145],
+  [472,"HONDA","STEPWAGON E:HEV SPADA PREMIUM LINE (6AA-RP8)",1993,"JPY",1231709,1042215,852722,663228,568481],
+  [473,"HONDA","STEPWAGON G HONDA SENSING (6BA-RP1)",1496,"JPY",869276,735541,601806,468072,401204],
+  [474,"HONDA","STEPWAGON MODULO X HONDA SENSING 7 SEATER (6BA-RP3)",1496,"JPY",1152460,975158,797857,620555,531905],
+  [476,"HONDA","STEPWAGON SPADA 7 SEATER (5BA-RP6)",1496,"JPY",1042920,882471,722021,561572,481348],
+  [477,"HONDA","STEPWAGON SPADA 8 SEATER (5BA-RP6)",1496,"JPY",1042920,882471,722021,561572,481348],
+  [483,"HONDA","STEPWAGON SPADA HONDA SENSING 7 SEATER (6BA-RP3)",1496,"JPY",935141,791273,647405,503537,431603],
+  [484,"HONDA","STEPWAGON SPADA HONDA SENSING 8 SEATER (6BA-RP3)",1496,"JPY",942185,797234,652282,507330,434855],
+  [486,"HONDA","STEPWAGON SPADA PREMIUM LINE (5BA-RP6)",1496,"JPY",1108785,938202,767620,597038,511747],
+  [488,"HONDA","ZR-V EHEV Z (6AA-RZ4) AT",1993,"JPY",1280667,1083642,886616,689590,591077],
+  [489,"HONDA","ZRV X (5BA-RZ3)",1496,"JPY",1027422,869357,711292,553227,474195],
+  [490,"HONDA","ZR-V Z (5BA-RZ3)",1496,"JPY",1130974,956978,782982,608986,521988],
+  [491,"HONDA","ZR-V Z (5BA-RZ5)",1496,"JPY",1201418,1016585,831751,646917,554501],
+  // MAZDA
+  [897,"MAZDA","CX-60 XD HYBRID PREMIUM MODERN (3CA-KH3R3P)",3283,"JPY",1815688,1536351,1257015,977678,838010],
+  [898,"MAZDA","CX8 XD PROACTIVE (3DA-KG2P)",2188,"JPY",1301448,1101225,901003,700780,600668],
+  [899,"MAZDA","MAZDA6 WAGON 25S L PACKAGE (6BA-GJ5FW) AT",2488,"JPY",1164083,984993,805904,626814,537269],
+  [900,"MAZDA","MAZDA6 WAGON 25T S PACKAGE (5BA-GJ5FW)",2488,"JPY",1382459,1169773,957087,744401,638058],
+  [901,"MAZDA","MX30 100TH ANNIVERSARY (5AA-DREJ3P) AT",1997,"JPY",1010868,855350,699832,544313,466554],
+  [903,"MAZDA","ROADSTER 990S (5BA-ND5RC) MT",1496,"JPY",926335,783822,641309,498796,427539],
+  [904,"MAZDA","ROADSTER BROWN TOP (5BA-ND5RC) AT",1496,"JPY",1079903,913764,747625,581486,498417],
+  [905,"MAZDA","ROADSTER BROWN TOP (5BA-ND5RC) MT",1496,"JPY",1042920,882471,722021,561572,481348],
+  [906,"MAZDA","ROADSTER NAVY TOP (5BA-ND5RC) AT",1496,"JPY",1058770,895882,732994,570107,488663],
+  [907,"MAZDA","ROADSTER NAVY TOP (5BA-ND5RC) MT",1496,"JPY",1021787,864589,707391,550193,471594],
+  [908,"MAZDA","ROADSTER NR-A (5BA-ND5RC) MT",1496,"JPY",882308,746568,610829,475089,407219],
+  [909,"MAZDA","ROADSTER RF 100TH ANNIVERSARY SPECIAL EDITION (5BA-NDERC) AT",1997,"JPY",1240162,1049368,858574,667780,572383],
+  [911,"MAZDA","ROADSTER RF 30TH ANNIVERSARY (5BA-NDERC) AT",1997,"JPY",1389503,1175733,961964,748194,641309],
+  [912,"MAZDA","ROADSTER RF RS (5BA-NDERC) MT",1997,"JPY",1243332,1052050,860768,669487,573846],
+  [913,"MAZDA","ROADSTER RF S (5BA-NDERC) AT",1997,"JPY",1130753,956791,782829,608867,521886],
+  [914,"MAZDA","ROADSTER RF S (5BA-NDERC) MT",1997,"JPY",1098923,929858,760793,591728,507195],
+  [915,"MAZDA","ROADSTER RF VS (5BA-NDERC)",1997,"JPY",1227254,1038446,849637,660829,566425],
+  [924,"MAZDA","ROADSTER RS (5BA-ND5RC) MT",1496,"JPY",1087345,920061,752777,585493,501852],
+  [925,"MAZDA","ROADSTER RS (5BA-ND5RE) MT",1496,"JPY",1178172,996915,815657,634400,543772],
+  [927,"MAZDA","ROADSTER S (5BA-ND5RC) MT",1496,"JPY",861175,728686,596198,463710,397465],
+  [929,"MAZDA","ROADSTER S LEATHER PACKAGE (5BA-ND5RC) AT",1496,"JPY",1058770,895882,732994,570107,488663],
+  [930,"MAZDA","ROADSTER S LEATHER PACKAGE (5BA-ND5RC) MT",1496,"JPY",1027794,869672,711550,553427,474366],
+  [937,"MAZDA","ROADSTER S SPECIAL PACKAGE (5BA-ND5RC) AT",1496,"JPY",956763,809569,662374,515180,441583],
+  [938,"MAZDA","ROADSTER S SPECIAL PACKAGE (5BA-ND5RC) MT",1496,"JPY",899919,761470,623021,484572,415347],
+  // MITSUBISHI
+  [1353,"MITSUBISHI","DELICA D5 G 7@8 SEATER (3DA-CV1W)",2267,"JPY",1313776,1111657,909537,707418,606358],
+  [1354,"MITSUBISHI","DELICA D5 G POWER PACKAGE 7@8 SEATER (3DA-CV1W)",2267,"JPY",1361325,1151891,942456,733021,628304],
+  [1355,"MITSUBISHI","DELICA D5 P 7@8 SEATER (3DA-CV1W)",2267,"JPY",1473331,1246665,1019998,793332,679999],
+  [1356,"MITSUBISHI","DELICA D5 URBAN GEAR G POWER PACKAGE (3DA-CV1W)",2267,"JPY",1422768,1203881,984993,766106,656662],
+  [1357,"MITSUBISHI","DELICA MINI T PREMIUM (4AA-B35A)",659,"JPY",664285,562087,459889,357692,306593],
+  [1358,"MITSUBISHI","DELICA MINI T PREMIUM (4AA-B38A)",659,"JPY",727332,615435,503537,391640,335692],
+  [1359,"MITSUBISHI","ECLIPSE CROSS G (5BA-GK1W)",1498,"JPY",935845,791869,647893,503917,431929],
+  [1360,"MITSUBISHI","EK X G PLUS EDITION (5AA-B34W)",659,"JPY",517762,438106,358450,278795,238967],
+  // NISSAN
+  [1362,"NISSAN","ELGRAND 250 HIGHWAY STAR PREMIUM URBAN CHROME (DBA-TE52)",2488,"JPY",1460299,1235638,1010976,786315,673984],
+  [1363,"NISSAN","ELGRAND 250 HIGHWAY STAR PREMIUM URBAN CHROME 7S (5BA-TE52)",2488,"JPY",1530038,1294648,1059257,823867,706172],
+  [1364,"NISSAN","ELGRAND 250 HIGHWAY STAR S URBAN CHROME 7S (5BA-TE52)",2488,"JPY",1311663,1109868,908074,706280,605383],
+  [1365,"NISSAN","ELGRAND 250HIGHWAY STAR PREMIUM (DBA-TE52)",2488,"JPY",1393377,1179012,964646,750280,643097],
+  [1366,"NISSAN","ELGRAND 250HIGHWAY STAR PREMIUM 7 SEATER (5BA-TE52)",2488,"JPY",1424725,1205536,986348,767160,657565],
+  [1368,"NISSAN","ELGRAND 250HIGHWAY STAR S 7 SEATER (DBA-TE52)",2488,"JPY",1107376,937010,766645,596279,511097],
+  [1369,"NISSAN","ELGRAND 250HIGHWAY STAR S 7 SEATER (DBA-TNE52)",2488,"JPY",1246854,1055031,863207,671383,575471],
+  [1370,"NISSAN","ELGRAND 250HIGHWAY STAR S 7@8 SEATER (5BA-TE52)",2488,"JPY",1183103,1001087,819071,637055,546047],
+  [1376,"NISSAN","ELGRAND AUTECH 7 SEATER (5BA-TE52)",2488,"JPY",1530743,1295244,1059745,824246,706497],
+  [1377,"NISSAN","ELGRAND RIDER 8 SEATER (DBA-TE52)",2488,"JPY",1285951,1088112,890274,692435,593516],
+  [1380,"NISSAN","FAIRLADY Z PROTO SPEC (3BA-RZ34) MT",2997,"JPY",2230601,1887432,1544262,1201093,1029508],
+  [1381,"NISSAN","FAIRLADY Z PROTO SPEC (5BA-RZ34) AT",2997,"JPY",2230601,1887432,1544262,1201093,1029508],
+  [1382,"NISSAN","FAIRLADY Z VERSION ST (3BA-RZ34) MT",2997,"JPY",2131628,1803685,1475742,1147800,983828],
+  [1383,"NISSAN","FAIRLADY Z VERSION ST (5BA-RZ34) AT",2997,"JPY",2069285,1750934,1432582,1114230,955055],
+  [1384,"NISSAN","GTR 50TH ANNIVERSARY (4BA-R35)",3799,"JPY",4302352,3640452,2978551,2316651,1985701],
+  [1385,"NISSAN","GTR BLACK EDITION (4BA-R35)",3799,"JPY",4089612,3460441,2831270,2202099,1887513],
+  [1386,"NISSAN","GTR NISMO (4BA-R35)",3799,"JPY",7748813,6556688,5364563,4172438,3576375],
+  [1387,"NISSAN","GTR NISMO (DBA-R35)",3799,"JPY",6098668,5160411,4222155,3283898,2814770],
+  [1389,"NISSAN","GTR PREMIUM EDITION (4BA-R35)",3799,"JPY",3948020,3340632,2733245,2125857,1822163],
+  [1390,"NISSAN","GTR PREMIUM EDITION T-SPEC (4BA-R35)",3799,"JPY",5092731,4309234,3525737,2742240,2350491],
+  [1393,"NISSAN","GTR PURE EDITION (4BA-R35)",3799,"JPY",3467241,2933820,2400398,1866976,1600265],
+  [1396,"NISSAN","GTR TRACK EDITION ENGINEERED BY NISMO (4BA-R35)",3799,"JPY",4686623,3965604,3244585,2523566,2163057],
+  [1399,"NISSAN","JUKE 15RX V SELECTION DRESS UP (DBA-YF15)",1498,"JPY",694928,588016,481104,374192,320736],
+  [1400,"NISSAN","LEAF G (ZAA-ZE1)",0,"JPY",1366446,1156223,946001,735778,630667],
+  [1401,"NISSAN","LEAF NISMO (ZAA-ZE1)",0,"JPY",1375062,1163514,951966,740418,634644],
+  [1402,"NISSAN","LEAF X (ZAA-ZE1)",0,"JPY",1245550,1053927,862304,670681,574869],
+  [1403,"NISSAN","MARCH NISMO S (DBA-K13 KAI) MT",1498,"JPY",612013,517857,423701,329545,282467],
+  [1404,"NISSAN","NOTE NISMO S (DBA-E12KAI) MT",1597,"JPY",759384,642555,525727,408899,350485],
+  [1405,"NISSAN","ROOX HIGHWAY STAR G TURBO PROPILOT EDITION (4AA-B45A)",659,"JPY",618848,523641,428433,333226,285622],
+  [1406,"NISSAN","SAKURA G (ZAA-B6AW)",0,"JPY",973533,823758,673984,524210,449323],
+  // SUBARU
+  [1628,"SUBARU","BRZ GT (4BA-ZC6) AT",1998,"JPY",1100684,931348,762012,592676,508008],
+  [1630,"SUBARU","BRZ GT (DBA-ZC6) MT",1998,"JPY",1081312,914956,748600,582245,499067],
+  [1632,"SUBARU","BRZ R (3BA-ZD8) AT",2387,"JPY",1039045,879192,719339,559486,479559],
+  [1633,"SUBARU","BRZ R (3BA-ZD8) MT",2387,"JPY",986213,834488,682763,531038,455175],
+  [1634,"SUBARU","BRZ R (4BA-ZC6) AT",1998,"JPY",892875,755509,618144,480779,412096],
+  [1635,"SUBARU","BRZ R (4BA-ZC6) MT",1998,"JPY",889678,752805,615931,479058,410621],
+  [1638,"SUBARU","BRZ S (3BA-ZD8) AT",2387,"JPY",1098923,929858,760793,591728,507195],
+  [1639,"SUBARU","BRZ S (3BA-ZD8) MT",2387,"JPY",1046090,885153,724216,563279,482811],
+  [1640,"SUBARU","BRZ S (4BA-ZC6) AT",1998,"JPY",987974,835978,683982,531986,455988],
+  [1641,"SUBARU","BRZ S (4BA-ZC6) MT",1998,"JPY",968602,819586,670570,521555,447047],
+  [1643,"SUBARU","BRZ STI SPORT (3BA-ZD8) MT",2387,"JPY",1211633,1025228,838823,652418,559215],
+  [1644,"SUBARU","BRZ STI SPORT (4BA-ZC6) MT",1998,"JPY",1151755,974562,797369,620176,531579],
+  [1645,"SUBARU","BRZ STI SPORT (DBA-ZC6) AT",1998,"JPY",1171127,990954,810780,630607,540520],
+  [1647,"SUBARU","BRZ TS (DBA-ZC6) AT",1998,"JPY",1327669,1123412,919155,714899,612770],
+  [1648,"SUBARU","BRZ TS (DBA-ZC6) MT",1998,"JPY",1301253,1101060,900867,700674,600578],
+  [1652,"SUBARU","FORESTER SPORTS (4BA-SK5)",1795,"JPY",1056656,894094,731531,568969,487688],
+  [1653,"SUBARU","FORESTER STI SPORT (4BA-SK5)",1795,"JPY",1197544,1013306,829069,644831,552713],
+  [1654,"SUBARU","LEGACY B4 LIMITED (DBA-BN9)",2498,"JPY",1021434,864291,707147,550003,471431],
+  [1655,"SUBARU","LEVORG 2.0 STI SPORT EYE SIGHT (DBA-VMG)",1998,"JPY",1345280,1138314,931348,724382,620898],
+  [1656,"SUBARU","LEVORG 2.0GT-S EYE SIGHT (DBA-VMG)",1998,"JPY",1179933,998405,816877,635348,544584],
+  [1658,"SUBARU","LEVORG GT EX (4BA-VN5)",1795,"JPY",1116533,944759,772985,601210,515323],
+  [1659,"SUBARU","LEVORG STI SPORT EX (4BA-VN5)",1795,"JPY",1327865,1123578,919291,715004,612861],
+  [1660,"SUBARU","LEVORG STI SPORT EYE SIGHT (DBA-VM4)",1599,"JPY",1162322,983503,804684,625866,536456],
+  [1661,"SUBARU","LEVORG STI SPORT R EX (5BA-VNH)",2387,"JPY",1546240,1308357,1070474,832591,713649],
+  [1662,"SUBARU","WRX S4 2.0GT EYE SIGHT (DBA-VAG)",1998,"JPY",1098923,929858,760793,591728,507195],
+  [1663,"SUBARU","WRX S4 2.0GT-S EYE SIGHT (DBA-VAG)",1998,"JPY",1218677,1031188,843699,656211,562466],
+  [1664,"SUBARU","WRX S4 GT-H (5BA-VBH)",2387,"JPY",1282076,1084834,887591,690349,591728],
+  [1665,"SUBARU","WRX S4 STI SPORT EYE SIGHT (DBA-VAG)",1998,"JPY",1334909,1129538,924168,718797,616112],
+  [1667,"SUBARU","WRX S4 STI SPORT R EX (5BA-VBH)",2387,"JPY",1546240,1308357,1070474,832591,713649],
+  [1668,"SUBARU","WRX S4 STI SPORT SHARP (5BA-VBH)",2387,"JPY",1997080,1689837,1382594,1075351,921729],
+  [1670,"SUBARU","WRX STI (CBA-VAB) MT",1994,"JPY",1260943,1066952,872961,678969,581974],
+  [1671,"SUBARU","WRX STI EJ20 FINAL EDITION (CBA-VAB) MT",1994,"JPY",1553285,1314318,1075351,836384,716901],
+  [1673,"SUBARU","WRX STI S 208 NBR CHALLENGE PACKAGE (CBA-VAB)",1994,"JPY",2317599,1961046,1604492,1247938,1069661],
+  [1674,"SUBARU","WRX STI TYPE S ADVANCED SAFETY PACKAGE (CBA-VAB) MT",1994,"JPY",1317554,1114854,912153,709452,608102],
+  // SUZUKI
+  [1676,"SUZUKI","ALTO WORKS BASE GRADE 2WD (DBA-HA36S) AT",658,"JPY",514076,434988,355899,276810,237266],
+  [1677,"SUZUKI","ALTO WORKS BASE GRADE 2WD (DBA-HA36S) MT",658,"JPY",501520,424363,347206,270049,231471],
+  [1678,"SUZUKI","HUSTLER HYBRID G (5AA-MR92S)",658,"JPY",417575,353333,289090,224848,192727],
+  [1679,"SUZUKI","HUSTLER HYBRID X TURBO 4WD (4AA-MR52S)",658,"JPY",559323,473274,387224,301174,258149],
+  [1681,"SUZUKI","HUSTLER J STYLE II (DAA-MR41S)",658,"JPY",494867,418734,342600,266467,228400],
+  [1682,"SUZUKI","HUSTLER J STYLE II TURBO (4AA-MR52S)",658,"JPY",544178,460458,376739,293019,251159],
+  [1683,"SUZUKI","HUSTLER TOUGH WILD TURBO RWD (4AA-MR52S)",658,"JPY",588558,498010,407463,316916,271642],
+  [1684,"SUZUKI","JIMNY SIERRA JC (3BA-JB74W)",1460,"JPY",658649,557318,455988,354657,303992],
+  [1685,"SUZUKI","JIMNY SIERRA JC (3BA-JB74W) MT",1460,"JPY",635755,537946,440138,342330,293425],
+  [1686,"SUZUKI","JIMNY SIERRA JL (3BA-JB74W) AT",1460,"JPY",628358,531688,435017,338347,290012],
+  [1687,"SUZUKI","JIMNY XC (3BA-JB64W) AT",658,"JPY",611654,517553,423453,329352,282302],
+  [1688,"SUZUKI","JIMNY XG (3BA-JB64W)",658,"JPY",489232,413965,338699,263433,225799],
+  [1689,"SUZUKI","JIMNY XL (3BA-JB64W) AT",658,"JPY",561437,475062,388687,302312,259125],
+  [1690,"SUZUKI","SPACIA BASE XF FWD (5BD-MK33V)",658,"JPY",495572,419330,343088,266846,228725],
+  [1691,"SUZUKI","SPACIA CUSTOM HYBRID XS (5AA-MK53S)",658,"JPY",580104,490857,401611,312364,267740],
+  [1692,"SUZUKI","SPACIA GEAR HYBRID XZ (5AA-MK53S)",658,"JPY",552631,467611,382591,297571,255061],
+  [1693,"SUZUKI","SPACIA GEAR HYBRID XZ TURBO 4WD (4AA-MK53S)",658,"JPY",615678,520959,426239,331519,284159],
+  [1695,"SUZUKI","SPACIA GEAR MY STYLE 2WD (5AA-MK53S)",658,"JPY",574117,485791,397465,309140,264977],
+  [1696,"SUZUKI","SWIFT SPORT (CBA-ZC33S)",1371,"JPY",621666,526025,430384,334743,286923],
+  [1697,"SUZUKI","SWIFT SPORT BASE GRADE (CBA-ZC33S) MT",1371,"JPY",598772,506653,414534,322416,276356],
+  [1698,"SUZUKI","SWIFT SPORT BASE GRADE SAFETY PACKAGE (CBA-ZC33S) AT",1371,"JPY",661878,560050,458223,356396,305482],
+  [1699,"SUZUKI","SWIFT SPORT BASE GRADE SUZUKI SAFETY SUPPORT (4BA-ZC33S) AT",1371,"JPY",668863,565961,463059,360157,308706],
+  [1700,"SUZUKI","SWIFT SPORT BASE GRADE WITH SAFETY PACKAGE (CBA-ZC33S) MT",1371,"JPY",626949,530496,434042,337588,289361],
+  [1701,"SUZUKI","SWIFT SPORT BASE GRADE (4BA-ZC33S) MT",1371,"JPY",649491,549570,449648,349726,299765],
+  // TOYOTA
+  [1714,"TOYOTA","86 G (4BA-ZN6)",1998,"JPY",863288,730475,597661,464847,398441],
+  [1715,"TOYOTA","86 G (4BA-ZN6) MT",1998,"JPY",855539,723918,592296,460675,394864],
+  [1716,"TOYOTA","86 GR (DBA-ZN6) MT",1998,"JPY",1620206,1370944,1121681,872419,747788],
+  [1717,"TOYOTA","86 GR SPORT (4BA-ZN6)",1998,"JPY",1254603,1061587,868571,675556,579048],
+  [1719,"TOYOTA","86 GT (4BA-ZN6)",1998,"JPY",994314,841342,688371,535400,458914],
+  [1720,"TOYOTA","86 GT (4BA-ZN6) MT",1998,"JPY",972476,822864,673253,523641,448835],
+  [1721,"TOYOTA","86 GT (DBA-ZN6) AT",1998,"JPY",994314,841342,688371,535400,458914],
+  [1725,"TOYOTA","86 GT BLACK LIMITED (4BA-ZN6) AT",1998,"JPY",1148233,971582,794931,618279,529954],
+  [1729,"TOYOTA","86 GT LIMITED (4BA-ZN6) MT",1998,"JPY",1057569,894866,732163,569460,488109],
+  [1740,"TOYOTA","86 STYLE CB (DBA-ZN6)",1998,"JPY",1390304,1176411,962518,748625,641679],
+  [1741,"TOYOTA","ALPHARD 2.5G (3BA-AGH35W)",2493,"JPY",1534713,1298603,1062494,826384,708329],
+  [1742,"TOYOTA","ALPHARD 2.5G (DBA-AGH30W)",2493,"JPY",1371892,1160832,949771,738711,633181],
+  [1744,"TOYOTA","ALPHARD 2.5G (DBA-AGH35W)",2493,"JPY",1450619,1227447,1004275,781103,669517],
+  [1745,"TOYOTA","ALPHARD 2.5G 7 SEATER (3BA-AGH30W)",2493,"JPY",1453383,1229785,1006188,782591,670792],
+  [1749,"TOYOTA","ALPHARD 2.5S 7 SEATER (3BA-AGH30W)",2493,"JPY",1251337,1058824,866310,673797,577540],
+  [1750,"TOYOTA","ALPHARD 2.5S 7 SEATER (3BA-AGH35W)",2493,"JPY",1332988,1127913,922838,717763,615225],
+  [1751,"TOYOTA","ALPHARD 2.5S 7 SEATER (DBA-AGH30W)",2493,"JPY",1225369,1036851,848332,659814,565555],
+  [1752,"TOYOTA","ALPHARD 2.5S 8 SEATER (3BA-AGH30W)",2493,"JPY",1237248,1046903,856557,666211,571038],
+  [1753,"TOYOTA","ALPHARD 2.5S 8 SEATER (3BA-AGH35W)",2493,"JPY",1343554,1136854,930153,723452,620102],
+  [1754,"TOYOTA","ALPHARD 2.5S 8 SEATER (DBA-AGH30W)",2493,"JPY",1153677,976188,798699,621210,532466],
+  [1756,"TOYOTA","ALPHARD 2.5S A PACKAGE (DBA-AGH30W)",2493,"JPY",1280667,1083642,886616,689590,591077],
+  [1757,"TOYOTA","ALPHARD 2.5S A PACKAGE (DBA-AGH35W)",2493,"JPY",1306091,1105154,904217,703280,602811],
+  [1760,"TOYOTA","ALPHARD 2.5S C PACKAGE (3BA-AGH30W)",2493,"JPY",1493408,1263653,1033898,804143,689265],
+  [1761,"TOYOTA","ALPHARD 2.5S C PACKAGE (3BA-AGH35W)",2493,"JPY",1574738,1332471,1090203,847936,726802],
+  [1762,"TOYOTA","ALPHARD 2.5S C PACKAGE (DBA-AGH30W)",2493,"JPY",1429656,1209709,989762,769815,659841],
+  [1763,"TOYOTA","ALPHARD 2.5S C PACKAGE (DBA-AGH35W)",2493,"JPY",1511018,1278554,1046090,813625,697393],
+  [1764,"TOYOTA","ALPHARD 2.5S TYPE GOLD (3BA-AGH30W)",2493,"JPY",1357643,1148775,939907,731039,626605],
+  [1765,"TOYOTA","ALPHARD 2.5S TYPE GOLD (3BA-AGH35W)",2493,"JPY",1439294,1217864,996434,775004,664289],
+  [1776,"TOYOTA","ALPHARD 3.5 EXECUTIVE LOUNGE (3BA-GGH30W)",3456,"JPY",2327526,1969445,1611364,1253283,1074243],
+  [1777,"TOYOTA","ALPHARD 3.5 EXECUTIVE LOUNGE (DBA-GGH30W)",3456,"JPY",2292240,1939587,1586935,1234283,1057957],
+  [1778,"TOYOTA","ALPHARD 3.5 EXECUTIVE LOUNGE S (3BA-GGH30W)",3456,"JPY",2376196,2010627,1645059,1279490,1096706],
+  [1779,"TOYOTA","ALPHARD 3.5 EXECUTIVE LOUNGE S (3BA-GGH35W)",3456,"JPY",2439595,2064273,1688950,1313628,1125967],
+  [1798,"TOYOTA","ALPHARD HYBRID EXECUTIVE LOUNGE (6AA-AAHH40W/6AA-AAHH45W)",2487,"JPY",2792134,2362575,1933016,1503457,1288677],
+  [1799,"TOYOTA","ALPHARD HYBRID SR C PACKAGE (6AA-AYH30W)",2493,"JPY",1810404,1531881,1253357,974833,835571],
+  [1803,"TOYOTA","ALPHARD HYBRID Z (6AA-AAHH40W/6AA-AAHH45W)",2487,"JPY",2055677,1739419,1423161,1106903,948774],
+  [1806,"TOYOTA","ALPHARD Z (3BA-AGH40W)/(3BA-AGH45W)",2493,"JPY",1792473,1516708,1240943,965178,827295],
+  [1813,"TOYOTA","CHR G (6AA-ZYX11)",1797,"JPY",958996,811458,663920,516382,442613],
+  [1814,"TOYOTA","CHR G-T (3BA-NGX10) AT",1196,"JPY",869340,735595,601851,468106,401234],
+  [1815,"TOYOTA","CHR G-T (3BA-NGX10) MT",1196,"JPY",842763,713108,583452,453796,388968],
+  [1816,"TOYOTA","CHR G-T (3BA-NGX50)",1196,"JPY",932739,789241,645743,502244,430495],
+  [1830,"TOYOTA","CHR S (DAA-ZYX10)",1797,"JPY",852500,721346,590192,459038,393461],
+  [1831,"TOYOTA","CHR S GR SPORT (6AA-ZYX11)",1797,"JPY",991015,838552,686088,533624,457392],
+  [1855,"TOYOTA","CROWN CROSSOVER G ADVANCED (6AA-AZSH35)",2487,"JPY",1633014,1381781,1130548,879315,753699],
+  [1857,"TOYOTA","CROWN CROSSOVER RS (5AA-TZSH35)",2393,"JPY",1937203,1639172,1341141,1043109,894094],
+  [1858,"TOYOTA","CROWN CROSSOVER RS ADVANCED (5AA-TZSH35)",2393,"JPY",2049273,1734000,1418727,1103455,945818],
+  [1863,"TOYOTA","CROWN RS (3BA-ARS220)",1998,"JPY",1632694,1381510,1130327,879143,753551],
+  [1864,"TOYOTA","CROWN RS ADVANCE (3BA-ARS220)",1998,"JPY",1858280,1572391,1286502,1000612,857668],
+  [1867,"TOYOTA","CROWN SPORT RS (6LA-AZSH37W)",2487,"JPY",2449521,2072672,1695822,1318973,1130548],
+  [1868,"TOYOTA","CROWN SPORT Z (6AA-AZSH36W)",2487,"JPY",1889173,1598531,1307889,1017247,871926],
+  [1869,"TOYOTA","CROWN Z (6AA-AZSH32)",2487,"JPY",2337452,1977844,1618236,1258628,1078824],
+  [1893,"TOYOTA","FJ CRUISER BASE GRADE (CBA-GSJ15W)",3955,"JPY",1056656,894094,731531,568969,487688],
+  [1894,"TOYOTA","FJ CRUISER BLACK COLOR PACKAGE",3955,"JPY",1127100,953700,780300,606900,520200],
+  [1896,"TOYOTA","FJ CRUISER FINAL EDITION (CBA-GSJ15W)",3955,"JPY",1139075,963833,788591,613348,525727],
+  [1897,"TOYOTA","FJ CRUISER OFFROAD PACKAGE (CBA-GSJ15W)",3955,"JPY",1130455,956538,782622,608706,521748],
+  [1898,"TOYOTA","GR COROLLA RZ (4BA-GZEA14H) MT",1618,"JPY",1681044,1422422,1163800,905178,775866],
+  [1899,"TOYOTA","GR COROLLA RZ MORIZO EDITION (4BA-GZEA14H) MT",1618,"JPY",2289422,1937203,1584984,1232766,1056656],
+  [1901,"TOYOTA","GR YARIS RC (4BA-GXPA16)",1618,"JPY",1229564,1040400,851236,662073,567491],
+  [1902,"TOYOTA","GR YARIS RC (4BA-GXPA16) MT",1618,"JPY",1056656,894094,731531,568969,487688],
+  [1904,"TOYOTA","GR YARIS RZ (4BA-GXPA16) AT",1618,"JPY",1546561,1308628,1070696,832763,713797],
+  [1905,"TOYOTA","GR YARIS RZ (4BA-GXPA16) MT",1618,"JPY",1267988,1072913,877838,682763,585225],
+  [1907,"TOYOTA","GR YARIS RZ HIGH PERFORMANCE (4BA-GXPA16) AT",1618,"JPY",1706660,1444097,1181534,918971,787689],
+  [1908,"TOYOTA","GR YARIS RZ HIGH PERFORMANCE (4BA-GXPA16) MT",1618,"JPY",1594590,1349269,1103947,858626,735965],
+  [1911,"TOYOTA","GR86 RC (3BA-ZN8) MT",2387,"JPY",896237,758354,620472,482589,413648],
+  [1912,"TOYOTA","GR86 RZ (3BA-ZN8) AT",2387,"JPY",1124538,951533,778527,605521,519018],
+  [1913,"TOYOTA","GR86 RZ (3BA-ZN8) MT",2387,"JPY",1072346,907370,742393,577417,494929],
+  [1914,"TOYOTA","GR86 RZ 10TH ANNIVERSARY LIMITED (3BA-ZN8) AT",2387,"JPY",1162962,984045,805128,626210,536752],
+  [1915,"TOYOTA","GR86 RZ 10TH ANNIVERSARY LIMITED (3BA-ZN8) MT",2387,"JPY",1110770,939882,768995,598107,512663],
+  [1916,"TOYOTA","GR86 SZ (3BA-ZN8) AT",2387,"JPY",1024316,866729,709142,551555,472761],
+  [1917,"TOYOTA","GR86 SZ (3BA-ZN8) MT",2387,"JPY",972124,822566,673009,523451,448673],
+  [1918,"TOYOTA","GRANACE G (3DA-GDH303W)",2754,"JPY",1985233,1679813,1374392,1068972,916261],
+  [1919,"TOYOTA","GRANACE PREMIUM (3DA-GDH303W)",2754,"JPY",2081293,1761094,1440895,1120696,960597],
+  [1923,"TOYOTA","HARRIER ELEGANCE (DBA-ASU60W)",1998,"JPY",1102445,932838,763231,593624,508821],
+  [1924,"TOYOTA","HARRIER ELEGANCE (DBA-ASU65W)",1998,"JPY",1165844,986483,807123,627762,538082],
+  [1930,"TOYOTA","HARRIER G (6BA-MXUA80)",1986,"JPY",1091878,923897,755916,587934,503944],
+  [1931,"TOYOTA","HARRIER G (6BA-MXUA85)",1986,"JPY",1155918,978084,800251,622417,533501],
+  [1932,"TOYOTA","HARRIER G LEATHER PACKAGE (6BA-MXUA80)",1986,"JPY",1187938,1005178,822418,639659,548279],
+  [1933,"TOYOTA","HARRIER G LEATHER PACKAGE (6BA-MXUA85)",1986,"JPY",1251978,1059366,866754,674142,577836],
+  [1934,"TOYOTA","HARRIER HYBRID Z (6AA-AXUH80)",2487,"JPY",1481880,1253899,1025917,797936,683945],
+  [1935,"TOYOTA","HARRIER HYBRID Z LEATHER PACKAGE (6AA-AXUH80)",2487,"JPY",1543359,1305919,1068479,831039,712319],
+  [1937,"TOYOTA","HARRIER PREMIUM (DBA-ASU60W)",1998,"JPY",1147881,971284,794687,618090,529791],
+  [1947,"TOYOTA","HARRIER PROGRESS (DBA-ASU60W)",1998,"JPY",1320820,1117617,914414,711211,609609],
+  [1955,"TOYOTA","HARRIER S (6BA-MXUA80)",1986,"JPY",975124,825105,675086,525067,450057],
+  [1957,"TOYOTA","HARRIER Z (6BA-MXUA80)",1986,"JPY",1258382,1064784,871187,677590,580791],
+  [1958,"TOYOTA","HARRIER Z (6BA-MXUA85)",1986,"JPY",1322421,1118972,915522,712073,610348],
+  [1959,"TOYOTA","HARRIER Z LEATHER PACKAGE (6BA-MXUA80)",1986,"JPY",1354441,1146066,937690,729314,625127],
+  [1960,"TOYOTA","HARRIER Z LEATHER PACKAGE (6BA-MXUA85)",1986,"JPY",1418481,1200253,982025,763797,654684],
+  [1964,"TOYOTA","LAND CRUISER 250 VX (3BA-TRJ250W)",2693,"JPY",1745084,1476609,1208135,939661,805423],
+  [1965,"TOYOTA","LAND CRUISER 250 VX (3DA-GDJ250W)",2754,"JPY",2017253,1706906,1396560,1086213,931040],
+  [1967,"TOYOTA","LAND CRUISER 250 VX FIRST EDITION (3DA-GDJ250W)",2754,"JPY",2241392,1896563,1551733,1206903,1034489],
+  [1968,"TOYOTA","LAND CRUISER 250 ZX (3DA-GDJ250W)",2754,"JPY",2353462,1991391,1629320,1267249,1086213],
+  [1969,"TOYOTA","LAND CRUISER 250 ZX FIRST EDITION (3DA-GDJ250W)",2754,"JPY",2513561,2126859,1740158,1353456,1160105],
+  [1970,"TOYOTA","LAND CRUISER 70 AX (3DA-GDJ76W)",2754,"JPY",1536955,1300500,1064045,827591,709364],
+  [1972,"TOYOTA","LAND CRUISER AX (3BA-URJ202W)",4608,"JPY",1680083,1421609,1163135,904660,775423],
+  [1973,"TOYOTA","LAND CRUISER AX (3BA-VJA300W)",3444,"JPY",1761094,1490156,1219219,948281,812813],
+  [1976,"TOYOTA","LAND CRUISER GR SPORT (3BA-VJA300W)",3444,"JPY",2465531,2086219,1706906,1327594,1137938],
+  [1977,"TOYOTA","LAND CRUISER GR SPORT (3DA-FJA300W)",3345,"JPY",2561591,2167500,1773409,1379318,1182273],
+  [1978,"TOYOTA","LAND CRUISER GX (3BA-VJA300W)",3444,"JPY",1681845,1423099,1164354,905609,776236],
+  [1981,"TOYOTA","LAND CRUISER PRADO TX 5 SEATER (3BA-TRJ150W)",2693,"JPY",1173849,993257,812665,632073,541776],
+  [1982,"TOYOTA","LAND CRUISER PRADO TX 5 SEATER (3DA-GDJ150W)",2754,"JPY",1372052,1160967,949882,738797,633255],
+  [1984,"TOYOTA","LAND CRUISER PRADO TX 7 SEATER (3BA-TRJ150W)",2693,"JPY",1224440,1036065,847690,659314,565126],
+  [1985,"TOYOTA","LAND CRUISER PRADO TX 7 SEATER (3DA-GDJ150W)",2754,"JPY",1422644,1203775,984907,766039,656605],
+  [1987,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE (CBA-TRJ150W)",2693,"JPY",1290401,1091878,893355,694831,595570],
+  [1988,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE (LDA-GDJ150W)",2754,"JPY",1531511,1295894,1060277,824660,706851],
+  [1989,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE 5S (3BA-TRJ150W)",2693,"JPY",1334909,1129538,924168,718797,616112],
+  [1990,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE 5S (3DA-GDJ150W)",2754,"JPY",1540157,1303209,1066262,829315,710841],
+  [1992,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE 7S (3BA-TRJ150W)",2693,"JPY",1385500,1172347,959193,746039,639462],
+  [1993,"TOYOTA","LAND CRUISER PRADO TX L PACKAGE 7S (3DA-GDJ150W)",2754,"JPY",1574738,1332471,1090203,847936,726802],
+  [2007,"TOYOTA","LAND CRUISER PRADO TZ-G (3DA-GDJ151W)",2754,"JPY",1770700,1498284,1225869,953454,817246],
+  [2008,"TOYOTA","LAND CRUISER PRADO TZ-G (LDA-GDJ151W)",2754,"JPY",1749118,1480023,1210928,941833,807285],
+  [2011,"TOYOTA","LAND CRUISER VX (3BA-VJA300W)",3444,"JPY",2017253,1706906,1396560,1086213,931040],
+  [2012,"TOYOTA","LAND CRUISER ZX (3BA-URJ202W)",4608,"JPY",2233067,1889518,1545969,1202421,1030646],
+  [2013,"TOYOTA","LAND CRUISER ZX (3BA-VJA300W)",3444,"JPY",2337452,1977844,1618236,1258628,1078824],
+  [2014,"TOYOTA","LAND CRUISER ZX (3DA-FJA300W)",3345,"JPY",2433511,2059125,1684739,1310352,1123159],
+  [2080,"TOYOTA","PRIUS G (6AA-MXWH60)",1986,"JPY",1024636,867000,709364,551727,472909],
+  [2081,"TOYOTA","PRIUS Z (6AA-MXWH60)",1986,"JPY",1184736,1002469,820202,637935,546801],
+  [2082,"TOYOTA","RAIZE Z (5BA-A210A)",996,"JPY",730758,618334,505909,393485,337273],
+  [2083,"TOYOTA","RAV4 ADVENTURE (6BA-MXAA54)",1986,"JPY",1023195,865781,708366,550951,472244],
+  [2084,"TOYOTA","RAV4 ADVENTURE OFFROAD PACKAGE (6BA-MXAA54)",1986,"JPY",1281020,1083940,886860,689780,591240],
+  [2085,"TOYOTA","RAV4 G (6BA-MXAA54)",1986,"JPY",1044329,883663,722997,562331,481998],
+  [2086,"TOYOTA","RAV4 G Z PACKAGE (6BA-MXAA54)",1986,"JPY",1228283,1039316,850350,661383,566900],
+  [2087,"TOYOTA","RAV4 PHV Z (6LA-AXAP54)",2487,"JPY",1803680,1526191,1248702,971212,832468],
+  [2088,"TOYOTA","RAV4 X (6BA-MXAA52)",1986,"JPY",878305,743182,608058,472934,405372],
+  [2099,"TOYOTA","SIENTA HYBRID Z 5 SEATER (6AA-MXPL10G)",1490,"JPY",959508,811891,664275,516658,442850],
+  [2102,"TOYOTA","SUPRA RZ (3BA-DB02)",2997,"JPY",2341614,1981366,1621118,1260869,1080745],
+  [2103,"TOYOTA","SUPRA RZ (3BA-DB06) AT/MT",2997,"JPY",2341614,1981366,1621118,1260869,1080745],
+  [2104,"TOYOTA","SUPRA RZ (3BA-DB42)",2997,"JPY",2250287,1904089,1557891,1211693,1038594],
+  [2105,"TOYOTA","SUPRA RZ 35TH ANNIVERSARY EDITION (3BA-DB02)",2997,"JPY",2508758,2122795,1736833,1350870,1157888],
+  [2106,"TOYOTA","SUPRA RZ HORIZON BLUE EDITION (3BA-DB02)",2997,"JPY",2373634,2008460,1643285,1278111,1095523],
+  [2108,"TOYOTA","SUPRA SZ (3BA-DB82)",1998,"JPY",1568974,1327594,1086213,844832,724142],
+  [2110,"TOYOTA","SUPRA SZ-R (3BA-DB22)",1998,"JPY",1889173,1598531,1307889,1017247,871926],
+  [2111,"TOYOTA","SUPRA SZ-R (3BA-DB26)",1998,"JPY",1925356,1629147,1332939,1036730,888626],
+  [2120,"TOYOTA","VELLFIRE 2.4Z GOLDEN EYES II (DBA-ANH25W)",2362,"JPY",1301197,1101013,900829,700644,600552],
+  [2121,"TOYOTA","VELLFIRE 2.5 GOLDEN EYES II (3BA-AGH30W)",2493,"JPY",1357643,1148775,939907,731039,626605],
+  [2124,"TOYOTA","VELLFIRE 2.5V (3BA-AGH30W)",2493,"JPY",1453383,1229785,1006188,782591,670792],
+  [2125,"TOYOTA","VELLFIRE 2.5V (3BA-AGH35W)",2493,"JPY",1534713,1298603,1062494,826384,708329],
+  [2126,"TOYOTA","VELLFIRE 2.5V (DBA-AGH30W)",2493,"JPY",1371892,1160832,949771,738711,633181],
+  [2136,"TOYOTA","VELLFIRE 2.5Z (3BA-AGH30W)",2493,"JPY",1243652,1052321,860990,669659,573993],
+  [2137,"TOYOTA","VELLFIRE 2.5Z 7 SEATER (3BA-AGH35W)",2493,"JPY",1332988,1127913,922838,717763,615225],
+  [2147,"TOYOTA","VELLFIRE 2.5Z G EDITION (3BA-AGH30W)",2493,"JPY",1493408,1263653,1033898,804143,689265],
+  [2148,"TOYOTA","VELLFIRE 2.5Z G EDITION (3BA-AGH35W)",2493,"JPY",1574738,1332471,1090203,847936,726802],
+  [2157,"TOYOTA","VELLFIRE 3.5 EXECUTIVE LOUNGE (3BA-GGH30W)",3456,"JPY",2327526,1969445,1611364,1253283,1074243],
+  [2158,"TOYOTA","VELLFIRE 3.5 EXECUTIVE LOUNGE Z (3BA-GGH30W)",3456,"JPY",2376196,2010627,1645059,1279490,1096706],
+  [2172,"TOYOTA","VELLFIRE HYBRID EXECUTIVE LOUNGE (6AA-AAHH40W/6AA-AAHH45W)",2487,"JPY",2856174,2416763,1977351,1537940,1318234],
+  [2173,"TOYOTA","VELLFIRE HYBRID EXECUTIVE LOUNGE (DAA-AYH30W)",2493,"JPY",2294865,1941809,1588753,1235697,1059169],
+  [2178,"TOYOTA","VELLFIRE Z PREMIER (5BA-TAHA40W)/(5BA-TAHA45W)",2393,"JPY",2160702,1828286,1495871,1163455,997247],
+  [2222,"TOYOTA","YARIS CROSS G (5BA-MXPB10)",1490,"JPY",646802,547294,447786,348278,298524],
+  [2223,"TOYOTA","YARIS CROSS GR SPORT (5BA-MXPB10)",1490,"JPY",823231,696580,569929,443278,379953],
+  [2224,"TOYOTA","YARIS CROSS X (5BA-MXPB10)",1490,"JPY",607097,513698,420298,326898,280199],
+  [2225,"TOYOTA","YARIS CROSS Z (5BA-MXPB10)",1490,"JPY",707639,598772,489904,381037,326603],
+  [2226,"TOYOTA","YARIS G (5BA-MXPA10)",1490,"JPY",562269,475766,389263,302760,259509],
+  [2228,"TOYOTA","YARIS X (5BA-MXPA10) MT",1490,"JPY",495668,419411,343155,266898,228770],
+  [2229,"TOYOTA","YARIS Z (5BA-MXPA10) MT",1490,"JPY",609659,515865,422071,328278,281381],
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let filtered = [...DB];
+let pg = 1;
+const PER_PAGE = 20;
+let sel = null; // selected row
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function getRate(cur) {
+  const m = { JPY: 'rJPY', GBP: 'rGBP', AUD: 'rAUD' };
+  return parseFloat(document.getElementById(m[cur] || 'rJPY').value) || 0;
+}
+
+function getDuty(cc) {
+  if (cc === 0)    return { pct: 1.3595, lbl: '135.95%', row: 'dr0' }; // EV
+  if (cc <= 1499)  return { pct: 1.3595, lbl: '135.95%', row: 'dr0' };
+  if (cc <= 1799)  return { pct: 1.5025, lbl: '150.25%', row: 'dr1' };
+  if (cc <= 1999)  return { pct: 1.5740, lbl: '157.40%', row: 'dr2' };
+  if (cc <= 2499)  return { pct: 1.7170, lbl: '171.70%', row: 'dr3' };
+  return           { pct: 1.9315, lbl: '193.15%', row: 'dr4' };
+}
+
+function getFOB(car) {
+  const idx = parseInt(document.getElementById('sAge').value);
+  return car[5 + idx];
+}
+
+function getCCBucket(cc) {
+  if (cc === 0 || cc <= 1499) return '0-1499';
+  if (cc <= 1799) return '1500-1799';
+  if (cc <= 1999) return '1800-1999';
+  if (cc <= 2499) return '2000-2499';
+  return '2500+';
+}
+
+function rm(n) {
+  return 'RM ' + n.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function syncBadge() {
+  const v = parseFloat(document.getElementById('rJPY').value) || 0;
+  document.getElementById('jpyBadge').textContent = v.toFixed(4);
+}
+
+// ═══════════════════════════════════════
+// FILTER + RENDER TABLE
+// ═══════════════════════════════════════
+function doFilter() {
+  const brand = document.getElementById('sBrand').value.toLowerCase().trim();
+  const model = document.getElementById('sModel').value.toLowerCase().trim();
+  const cur   = document.getElementById('sCur').value;
+  const ccB   = document.getElementById('sCC').value;
+  const sort  = document.getElementById('sSort').value;
+
+  filtered = DB.filter(c => {
+    if (brand && !c[1].toLowerCase().includes(brand)) return false;
+    if (model && !c[2].toLowerCase().includes(model)) return false;
+    if (cur && c[4] !== cur) return false;
+    if (ccB && getCCBucket(c[3]) !== ccB) return false;
+    return true;
+  });
+
+  if (sort === 'asc')  filtered.sort((a,b) => getFOB(a) - getFOB(b));
+  if (sort === 'desc') filtered.sort((a,b) => getFOB(b) - getFOB(a));
+
+  pg = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  document.getElementById('countBadge').textContent = filtered.length + ' vehicles';
+  document.getElementById('totalCount').textContent = DB.length + ' total vehicles';
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="no-results">No vehicles match your search.</td></tr>';
+    renderPagination();
+    return;
+  }
+
+  const start = (pg - 1) * PER_PAGE;
+  const slice = filtered.slice(start, start + PER_PAGE);
+
+  tbody.innerHTML = slice.map(c => {
+    const fob = getFOB(c);
+    const isActive = sel && sel[0] === c[0];
+    return `<tr class="${isActive ? 'active-row' : ''}" onclick="clickRow(${c[0]})">
+      <td style="color:var(--text-muted);font-size:11px;width:40px">${c[0]}</td>
+      <td class="td-brand">${c[1]}</td>
+      <td class="td-model" title="${c[2]}">${c[2]}</td>
+      <td class="td-cc">${c[3] === 0 ? 'EV' : c[3].toLocaleString()}</td>
+      <td><span class="td-cur">${c[4]}</span></td>
+      <td class="td-fob">${fob.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filtered.length / PER_PAGE) || 1;
+  document.getElementById('pgInfo').textContent = `${filtered.length} results — Page ${pg} of ${total}`;
+  document.getElementById('prevBtn').disabled = pg <= 1;
+  document.getElementById('nextBtn').disabled = pg >= total;
+
+  let nums = '';
+  const range = 2;
+  for (let i = Math.max(1, pg - range); i <= Math.min(total, pg + range); i++) {
+    nums += `<button class="pag-btn ${i===pg?'cur':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  document.getElementById('pgNums').innerHTML = nums;
+}
+
+function goPage(n) {
+  const total = Math.ceil(filtered.length / PER_PAGE);
+  pg = Math.max(1, Math.min(total, n));
+  renderTable();
+}
+
+// ═══════════════════════════════════════
+// SELECT & CALCULATE
+// ═══════════════════════════════════════
+function clickRow(bil) {
+  sel = DB.find(c => c[0] === bil) || null;
+  renderTable();
+  updateCalc();
+}
+
+function updateCalc() {
+  if (!sel) return;
+  renderCalc();
+}
+
+function renderCalc() {
+  if (!sel) return;
+
+  const [bil, brand, model, cc, cur] = sel;
+  const fob = getFOB(sel);
+  const rate = getRate(cur);
+  const duty = getDuty(cc);
+  const ship = parseFloat(document.getElementById('rShip').value) || 0;
+
+  // Check override FOB
+  const ovEl = document.getElementById('ovFOB');
+  const ov = ovEl ? parseFloat(ovEl.value) : NaN;
+  const useFOB = (!isNaN(ov) && ov > 0) ? ov : fob;
+
+  // Steps
+  const A = useFOB * rate;
+  const B = A * 0.015;
+  const C = B + ship;
+  const D = A + C;
+  const E = D * duty.pct;
+
+  // Highlight duty row
+  ['dr0','dr1','dr2','dr3','dr4'].forEach(id => {
+    document.getElementById(id).classList.remove('hl');
+  });
+  document.getElementById(duty.row).classList.add('hl');
+
+  const ageLabels = ['12–24 months','24–36 months','36–48 months','48–60 months','60+ months'];
+  const ageIdx = parseInt(document.getElementById('sAge').value);
+  const ageLbl = ageLabels[ageIdx];
+
+  document.getElementById('calcBody').innerHTML = `
+    <div class="sel-info">
+      <div class="sel-brand">${brand}</div>
+      <div class="sel-model">${model}</div>
+      <div class="sel-tags">
+        <span class="tag">${cc === 0 ? 'Electric / EV' : cc.toLocaleString() + ' cc'}</span>
+        <span class="tag">${cur}</span>
+        <span class="tag">${ageLbl}</span>
+        <span class="tag blue">${duty.lbl} duty</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label class="field-label">FOB from database (${cur})</label>
+      <div class="fob-display">${fob.toLocaleString()} ${cur}</div>
+      <label class="field-label" style="margin-top:10px">Override FOB (optional)</label>
+      <input type="number" id="ovFOB" placeholder="Leave blank to use database value"
+        min="0" step="1" oninput="renderCalc()" style="margin-top:4px"
+        value="${(!isNaN(ov) && ov > 0) ? ov : ''}">
+    </div>
+
+    <div class="calc-steps">
+      <div class="step">
+        <div class="step-left">
+          <span class="step-letter">A</span>
+          <span class="step-name">FOB × Exchange Rate</span>
+          <div class="step-sub">${useFOB.toLocaleString()} ${cur} × ${rate.toFixed(4)}</div>
+        </div>
+        <div class="step-val">${rm(A)}</div>
+      </div>
+      <div class="step">
+        <div class="step-left">
+          <span class="step-letter">B</span>
+          <span class="step-name">Insurance (A × 1.5%)</span>
+          <div class="step-sub">${rm(A)} × 1.5%</div>
+        </div>
+        <div class="step-val">${rm(B)}</div>
+      </div>
+      <div class="step">
+        <div class="step-left">
+          <span class="step-letter">C</span>
+          <span class="step-name">B + Shipping</span>
+          <div class="step-sub">${rm(B)} + RM ${ship.toLocaleString()}</div>
+        </div>
+        <div class="step-val">${rm(C)}</div>
+      </div>
+      <div class="step">
+        <div class="step-left">
+          <span class="step-letter">D</span>
+          <span class="step-name">T/S Value (A + C)</span>
+          <div class="step-sub">${rm(A)} + ${rm(C)}</div>
+        </div>
+        <div class="step-val big">${rm(D)}</div>
+      </div>
+      <div class="step">
+        <div class="step-left">
+          <span class="step-letter">E</span>
+          <span class="step-name">Duty (D × ${duty.lbl})</span>
+          <div class="step-sub">${rm(D)} × ${duty.lbl}</div>
+        </div>
+        <div class="step-val big">${rm(E)}</div>
+      </div>
+    </div>
+
+    <div class="result-box">
+      <div class="result-label">Estimated Import Duty</div>
+      <div class="result-value">${rm(E)}</div>
+      <div class="result-sub">${brand} · ${duty.lbl} · ${ageLbl}</div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="window.print()">Print / PDF</button>
+      <button class="btn btn-ghost" onclick="clearSel()">Clear</button>
+    </div>
+  `;
+}
+
+function clearSel() {
+  sel = null;
+  ['dr0','dr1','dr2','dr3','dr4'].forEach(id => document.getElementById(id).classList.remove('hl'));
+  document.getElementById('calcBody').innerHTML = `
+    <div class="empty">
+      <div class="icon">🚗</div>
+      <p>Click any vehicle in the table to calculate its import duty.</p>
+    </div>`;
+  renderTable();
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.getElementById('sAge').addEventListener('change', () => {
+  doFilter();
+  if (sel) renderCalc();
+});
+
+doFilter();
+</script>
+</body>
+</html>
